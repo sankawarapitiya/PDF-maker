@@ -1,0 +1,7 @@
+{
+  "appId": "com.docscan.ocr",
+  "appName": "DocScan OCR",
+  "webDir": "dist",
+  "android": { "allowMixedContent": false },
+  "ios": { "contentInset": "never" }
+}

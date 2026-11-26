@@ -1,0 +1,48 @@
+{
+  "name": "docscan-ocr",
+  "version": "1.0.0",
+  "description": "Mobile document scanner with offline OCR and searchable PDF export (PWA + Capacitor)",
+  "scripts": {
+    "postinstall": "node scripts/copy-ocr-assets.mjs",
+    "dev": "vite --host",
+    "build": "node scripts/copy-ocr-assets.mjs && tsc -p . && vite build",
+    "preview": "vite preview --host",
+    "test": "vitest run",
+    "test:e2e": "node tests/e2e.mjs",
+    "icons": "node scripts/make-icons.mjs",
+    "cap:sync": "npm run build && cap sync",
+    "android": "npm run cap:sync && cap open android",
+    "ios": "npm run cap:sync && cap open ios"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sankawarapitiya/PDF-maker.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/sankawarapitiya/PDF-maker/issues"
+  },
+  "homepage": "https://github.com/sankawarapitiya/PDF-maker#readme",
+  "dependencies": {
+    "@capacitor/core": "^8.6.3",
+    "@capacitor/filesystem": "^8.1.5",
+    "@capacitor/share": "^8.0.3",
+    "idb-keyval": "^6.3.0",
+    "jspdf": "^4.2.1",
+    "tesseract.js": "^7.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/android": "^8.6.3",
+    "@capacitor/cli": "^8.6.3",
+    "@capacitor/ios": "^8.6.3",
+    "@tesseract.js-data/eng": "^1.0.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.8",
+    "vite-plugin-pwa": "^2.0.0",
+    "vitest": "^5.1.2"
+  },
+  "private": true,
+  "type": "module"
+}

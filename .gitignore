@@ -1,0 +1,6 @@
+node_modules/
+dist/
+public/tesseract/
+test-results/
+*.log
+.DS_Store
