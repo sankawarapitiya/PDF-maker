@@ -63,7 +63,7 @@ try {
   const page = await ctx.newPage();
   const errors = [];
   page.on('pageerror', (e) => errors.push(String(e)));
-  page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
+  page.on('console', (m) => { if (process.env.DEBUG) console.log('[console]', m.type(), m.text()); if (m.type() === 'error') errors.push(m.text()); });
 
   await page.goto(`http://localhost:${PORT}/`);
   await page.getByText('No scans yet').waitFor();
@@ -121,6 +121,31 @@ try {
   const pages = execFileSync('pdfinfo', [pdfPath]).toString().match(/Pages:\s+(\d+)/)?.[1];
   if (pages !== '2') fail(`expected 2 PDF pages, got ${pages}`);
 
+  // WhatsApp: PDF (desktop browser without file sharing falls back to download)
+  const [waDl] = await Promise.all([
+    page.waitForEvent('download'),
+    (async () => {
+      await page.getByText('WhatsApp', { exact: true }).click();
+      await page.locator('.sheet-backdrop.open').waitFor();
+      await shot(page, '7a-whatsapp-sheet');
+      await page.getByText('PDF document').click();
+    })(),
+  ]);
+  if (!waDl.suggestedFilename().endsWith('.pdf')) fail('WhatsApp PDF fallback did not produce a PDF');
+  // WhatsApp: recognised text opens a wa.me link
+  let waRequest = '';
+  await ctx.route(/wa\.me|whatsapp\.com/, (r) => {
+    waRequest = r.request().url();
+    return r.fulfill({ status: 200, contentType: 'text/html', body: 'ok' });
+  });
+  await page.getByText('WhatsApp', { exact: true }).click();
+  const [popup] = await Promise.all([page.waitForEvent('popup'), page.getByText('Recognised text').click()]);
+  await popup.waitForLoadState();
+  const waUrl = decodeURIComponent(waRequest);
+  console.log('WhatsApp URL:', waUrl.slice(0, 80));
+  if (!/wa\.me|whatsapp\.com/.test(waUrl) || !/quick brown fox/i.test(waUrl)) fail('wa.me link missing text');
+  await popup.close();
+
   // Library search finds the document by its OCR text
   await page.goto(`http://localhost:${PORT}/`);
   await page.getByLabel('Search').fill('brown fox');
@@ -131,6 +156,24 @@ try {
   await page.getByLabel('Settings').click();
   await page.getByText('Text recognition (OCR)').waitFor();
   await shot(page, '8-settings');
+
+  // Language downloader (needs network access to cdn.jsdelivr.net; skip with SKIP_LANG=1)
+  if (!process.env.SKIP_LANG) {
+    await page.getByLabel('Find a language').fill('sinh');
+    const row = page.locator('.lang-row[data-code="sin"]');
+    await row.getByText('Get').click();
+    await row.getByText(/Downloading/).waitFor({ timeout: 10000 }).catch(() => {});
+    await shot(page, '9-lang-downloading');
+    await row.getByText(/Downloaded ·/).waitFor({ timeout: 120000 });
+    if (!(await row.getByRole('checkbox').isChecked())) fail('downloaded language not enabled');
+    await page.getByLabel('Find a language').fill('');
+    await page.getByRole('button', { name: 'Downloaded', exact: true }).click();
+    await shot(page, '10-lang-downloaded');
+    // Remove it again
+    await row.getByLabel('Delete Sinhala').click();
+    await page.locator('.modal .btn.danger').click();
+    await page.locator('.lang-row[data-code="sin"]').waitFor({ state: 'detached' });
+  }
 
   const realErrors = errors.filter((e) => !/favicon|Estimating resolution/i.test(e));
   if (realErrors.length) fail('Console errors:\n' + realErrors.join('\n'));

@@ -35,6 +35,12 @@
         </provider>
     </application>
 
+    <!-- Needed on Android 11+ to detect / target WhatsApp -->
+    <queries>
+        <package android:name="com.whatsapp" />
+        <package android:name="com.whatsapp.w4b" />
+    </queries>
+
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />

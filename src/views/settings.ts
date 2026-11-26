@@ -1,7 +1,7 @@
 import { getSettings, saveSettings, storageEstimate } from '../db';
-import { LANGUAGES } from '../ocr';
+import { languageManager } from './languages';
 import { back } from '../router';
-import { h, iconButton, toast } from '../ui';
+import { h, iconButton } from '../ui';
 import type { Settings } from '../types';
 import { installPrompt } from '../pwa';
 
@@ -9,36 +9,11 @@ export async function settingsView() {
   const s = await getSettings();
   const save = async (patch: Partial<Settings>) => {
     Object.assign(s, patch);
-    await saveSettings(s);
+    // Re-read so changes made by the language manager aren't overwritten.
+    await saveSettings({ ...(await getSettings()), ...patch });
   };
 
-  const langList = h(
-    'div',
-    { class: 'lang-list' },
-    Object.entries(LANGUAGES).map(([code, name]) =>
-      h(
-        'label',
-        { class: 'check' },
-        h('input', {
-          type: 'checkbox',
-          checked: s.ocrLangs.includes(code),
-          onChange: (e: Event) => {
-            const on = (e.target as HTMLInputElement).checked;
-            let langs = s.ocrLangs.filter((l) => l !== code);
-            if (on) langs.push(code);
-            if (!langs.length) {
-              langs = ['eng'];
-              toast('At least one language is required');
-            }
-            save({ ocrLangs: langs });
-            if (on && code !== 'eng') toast(`${name} data will download on first use`);
-          },
-        }),
-        name,
-        code === 'eng' && h('small', { class: 'muted' }, ' (offline)'),
-      ),
-    ),
-  );
+  const langs = languageManager();
 
   const select = <K extends keyof Settings>(key: K, options: [string, string][], parse: (v: string) => Settings[K] = (v) => v as Settings[K]) =>
     h(
@@ -73,8 +48,7 @@ export async function settingsView() {
       ),
       h('section', null, h('h3', null, 'Text recognition (OCR)'),
         toggle('autoOcr', 'Recognise text automatically', 'Run OCR in the background after each scan'),
-        h('p', { class: 'muted' }, 'Languages (select all that appear in your documents):'),
-        langList,
+        langs.el,
       ),
       h('section', null, h('h3', null, 'PDF export'),
         h('label', { class: 'row' }, h('strong', null, 'Page size'),
@@ -86,5 +60,5 @@ export async function settingsView() {
         h('p', { class: 'muted' }, 'All scans and text stay on this device. Nothing is uploaded.')),
     ),
   );
-  return { el };
+  return { el, destroy: langs.destroy };
 }

@@ -20,6 +20,9 @@ async function writeNative(blob: Blob, filename: string, dir: 'cache' | 'documen
   return res.uri;
 }
 
+/** Write a blob to the app cache and return its native file URI. */
+export const writeTempFile = (blob: Blob, filename: string) => writeNative(blob, filename, 'cache');
+
 async function shareNative(blob: Blob, filename: string, title: string) {
   const { Share } = await import('@capacitor/share');
   const uri = await writeNative(blob, filename, 'cache');

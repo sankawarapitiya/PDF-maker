@@ -1,72 +1,31 @@
 import { createWorker, OEM, PSM, type Worker as TWorker } from 'tesseract.js';
+import { LANGUAGES, LOCAL_TESS, langData } from './langs';
 import type { OcrResult, OcrWord } from './types';
 
-export const LANGUAGES: Record<string, string> = {
-  eng: 'English', sin: 'Sinhala', tam: 'Tamil', hin: 'Hindi', ben: 'Bengali',
-  spa: 'Spanish', fra: 'French', deu: 'German', ita: 'Italian', por: 'Portuguese',
-  nld: 'Dutch', pol: 'Polish', tur: 'Turkish', rus: 'Russian', ukr: 'Ukrainian',
-  ara: 'Arabic', fas: 'Persian', heb: 'Hebrew', chi_sim: 'Chinese (Simplified)',
-  chi_tra: 'Chinese (Traditional)', jpn: 'Japanese', kor: 'Korean', tha: 'Thai',
-  vie: 'Vietnamese', ind: 'Indonesian', msa: 'Malay',
-};
-
-const base = new URL(import.meta.env.BASE_URL, location.href).href;
-const LOCAL = new URL('tesseract/', base).href;
-const CDN_LANG = (l: string) => `https://cdn.jsdelivr.net/npm/@tesseract.js-data/${l}/4.0.0_best_int`;
+export { LANGUAGES };
 
 let worker: TWorker | null = null;
 let workerLangs = '';
 let progressCb: ((status: string, p: number) => void) | null = null;
 let queue: Promise<unknown> = Promise.resolve();
 
+/** (Re)create the Tesseract worker with the given language packs loaded. */
 async function ensureWorker(langs: string[]): Promise<TWorker> {
-  const key = langs.join('+');
-  if (worker && workerLangs === key) return worker;
-  if (worker) {
-    await worker.terminate();
-    worker = null;
-  }
-  // Bundled English works offline; other languages download once from the CDN
-  // and are cached in IndexedDB by Tesseract.
-  const langPath = langs[0] === 'eng' ? `${LOCAL}lang` : CDN_LANG(langs[0]);
-  const w = await createWorker(langs, OEM.LSTM_ONLY, {
-    workerPath: `${LOCAL}worker.min.js`,
-    corePath: `${LOCAL}core`,
-    langPath,
-    logger: (m) => progressCb?.(m.status, m.progress),
-  });
-  await w.setParameters({ tessedit_pageseg_mode: PSM.AUTO, preserve_interword_spaces: '1' });
-  worker = w;
-  workerLangs = key;
-  return w;
-}
-
-/** Fetch each language's data separately when multiple languages are selected. */
-async function ensureMulti(langs: string[]): Promise<TWorker> {
-  if (langs.length === 1) return ensureWorker(langs);
   const key = langs.join('+');
   if (worker && workerLangs === key) return worker;
   if (worker) await worker.terminate();
   worker = null;
   const data = await Promise.all(
-    langs.map(async (l) => {
-      const url = l === 'eng' ? `${LOCAL}lang/eng.traineddata.gz` : `${CDN_LANG(l)}/${l}.traineddata.gz`;
-      const cache = await caches.open('ocr-langs');
-      let res = await cache.match(url);
-      if (!res) {
-        progressCb?.(`downloading ${LANGUAGES[l] ?? l}`, 0);
-        res = await fetch(url);
-        if (!res.ok) throw new Error(`Could not download ${l} language data`);
-        await cache.put(url, res.clone());
-      }
-      const buf = new Uint8Array(await res.arrayBuffer());
-      return { code: l, data: buf };
+    langs.map(async (code) => {
+      progressCb?.(`loading ${LANGUAGES[code] ?? code}`, 0);
+      return { code, data: await langData(code) };
     }),
   );
   const w = await createWorker(data as never, OEM.LSTM_ONLY, {
-    workerPath: `${LOCAL}worker.min.js`,
-    corePath: `${LOCAL}core`,
-    gzip: true,
+    workerPath: `${LOCAL_TESS}worker.min.js`,
+    corePath: `${LOCAL_TESS}core`,
+    // Language data is managed by langs.ts; avoid a second copy in Tesseract's cache.
+    cacheMethod: 'none',
     logger: (m) => progressCb?.(m.status, m.progress),
   });
   await w.setParameters({ tessedit_pageseg_mode: PSM.AUTO, preserve_interword_spaces: '1' });
@@ -83,7 +42,7 @@ export function recognize(
   const job = queue.then(async () => {
     progressCb = onProgress ?? null;
     try {
-      const w = await ensureMulti(langs.length ? langs : ['eng']);
+      const w = await ensureWorker(langs.length ? langs : ['eng']);
       const bmp = await createImageBitmap(image);
       const width = bmp.width;
       const height = bmp.height;

@@ -3,9 +3,10 @@ import { buildPdf } from '../pdf';
 import { events, ocrProgress, runOcr } from '../pipeline';
 import { back, navigate } from '../router';
 import { download, safeName, shareOrDownload } from '../share';
-import { actionButton, confirmDialog, h, icon, iconButton, progressOverlay, promptDialog, toast } from '../ui';
+import { actionButton, actionSheet, confirmDialog, h, icon, iconButton, progressOverlay, promptDialog, toast } from '../ui';
 import { importImages } from './scan';
 import type { Page } from '../types';
+import { shareToWhatsApp } from '../whatsapp';
 
 export async function docView([id]: string[]) {
   const doc = await getDoc(id);
@@ -53,18 +54,53 @@ export async function docView([id]: string[]) {
 
   async function exportPdf(share: boolean) {
     if (!pages.length) return toast('No pages to export');
+    const blob = await makePdf();
+    if (!blob) return;
+    const name = `${safeName(doc!.name)}.pdf`;
+    if (share) await shareOrDownload(blob, name, doc!.name);
+    else await download(blob, name);
+  }
+
+  async function makePdf(): Promise<Blob | null> {
     const s = await getSettings();
     const pr = progressOverlay('Creating PDF…');
     try {
-      const blob = await buildPdf(pages, { size: s.pageSize, title: doc!.name });
-      pr.close();
-      const name = `${safeName(doc!.name)}.pdf`;
-      if (share) await shareOrDownload(blob, name, doc!.name);
-      else await download(blob, name);
+      return await buildPdf(pages, { size: s.pageSize, title: doc!.name });
     } catch (e) {
-      pr.close();
       console.error(e);
       toast('PDF export failed');
+      return null;
+    } finally {
+      pr.close();
+    }
+  }
+
+  async function whatsApp() {
+    if (!pages.length) return toast('No pages to send');
+    const choice = await actionSheet('Send to WhatsApp', [
+      { label: 'PDF document', icon: 'pdf', hint: `${pages.length} page${pages.length > 1 ? 's' : ''}, searchable` },
+      { label: 'Page images', icon: 'image', hint: 'JPG photo for each page' },
+      { label: 'Recognised text', icon: 'text', hint: 'Send as a message' },
+    ]);
+    if (choice === null) return;
+    const base = safeName(doc!.name);
+    try {
+      let r;
+      if (choice === 0) {
+        const blob = await makePdf();
+        if (!blob) return;
+        r = await shareToWhatsApp([{ blob, name: `${base}.pdf` }]);
+      } else if (choice === 1) {
+        r = await shareToWhatsApp(pages.map((p, i) => ({ blob: p.processed, name: `${base}-${i + 1}.jpg` })));
+      } else {
+        const text = pages.map((p) => p.ocr?.text ?? '').join('\n\n').trim();
+        if (!text) return toast('No text recognised yet — tap Text first');
+        r = await shareToWhatsApp([], text);
+      }
+      if (r === 'downloaded') toast('Saved — attach the file in WhatsApp');
+    } catch (e) {
+      const msg = (e as Error).message ?? '';
+      toast(/not installed/i.test(msg) ? 'WhatsApp is not installed' : `Could not share: ${msg}`);
     }
   }
 
@@ -121,6 +157,7 @@ export async function docView([id]: string[]) {
       }),
       actionButton('text', 'Text', ocrAll),
       actionButton('pdf', 'Save PDF', () => exportPdf(false)),
+      actionButton('whatsapp', 'WhatsApp', whatsApp, 'wa'),
       actionButton('share', 'Share', () => exportPdf(true), 'primary'),
     ),
   );

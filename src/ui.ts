@@ -53,6 +53,8 @@ const ICONS: Record<string, string> = {
   right: 'M8.6 16.6 10 18l6-6-6-6-1.4 1.4 4.6 4.6z',
   search: 'M15.5 14h-.8l-.3-.3A6.5 6.5 0 1 0 14 15.5l.3.3v.8l5 5 1.5-1.5-5-5Zm-6 0a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9Z',
   edit: 'M3 17.2V21h3.8l11-11-3.8-3.8-11 11ZM20.7 7a1 1 0 0 0 0-1.4l-2.3-2.3a1 1 0 0 0-1.4 0l-1.8 1.8 3.7 3.7L20.7 7Z',
+  whatsapp: 'M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2c-1.5 0-3-.4-4.3-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.5l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7c.1.2 1.9 2.8 4.5 3.9 1.7.7 2.3.8 3.2.7.5-.1 1.5-.6 1.8-1.2.2-.6.2-1.1.1-1.2l-.5-.3Z',
+  download: 'M5 20h14v-2H5v2Zm14-11h-4V3H9v6H5l7 7 7-7Z',
   boxes: 'M3 3h8v8H3V3Zm2 2v4h4V5H5Zm8-2h8v8h-8V3Zm2 2v4h4V5h-4ZM3 13h8v8H3v-8Zm2 2v4h4v-4H5Zm8-2h8v8h-8v-8Zm2 2v4h4v-4h-4Z',
 };
 
@@ -177,5 +179,43 @@ export function pickFiles(accept = 'image/*', multiple = true): Promise<File[]> 
     });
     document.body.appendChild(input);
     input.click();
+  });
+}
+
+export interface SheetOption {
+  label: string;
+  icon: string;
+  hint?: string;
+}
+
+/** Bottom action sheet; resolves with the chosen index or null. */
+export function actionSheet(title: string, options: SheetOption[]): Promise<number | null> {
+  return new Promise((resolve) => {
+    const close = (v: number | null) => {
+      overlay.classList.remove('open');
+      setTimeout(() => overlay.remove(), 180);
+      resolve(v);
+    };
+    const overlay = h(
+      'div',
+      { class: 'sheet-backdrop', onClick: (e: Event) => e.target === overlay && close(null) },
+      h(
+        'div',
+        { class: 'sheet', role: 'dialog', 'aria-label': title },
+        h('div', { class: 'sheet-grip' }),
+        h('h3', null, title),
+        options.map((o, i) =>
+          h(
+            'button',
+            { class: 'sheet-item', onClick: () => close(i) },
+            icon(o.icon, 24),
+            h('span', null, h('strong', null, o.label), o.hint && h('small', null, o.hint)),
+          ),
+        ),
+        h('button', { class: 'btn sheet-cancel', onClick: () => close(null) }, 'Cancel'),
+      ),
+    );
+    document.body.appendChild(overlay);
+    requestAnimationFrame(() => overlay.classList.add('open'));
   });
 }

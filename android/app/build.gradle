@@ -1,5 +1,13 @@
 apply plugin: 'com.android.application'
 
+// Release signing: create android/keystore.properties (not committed) with
+// storeFile, storePassword, keyAlias, keyPassword — or set the same values as
+// DOCSCAN_* environment variables (used by the GitHub Actions workflow).
+def keystoreProps = new Properties()
+def keystoreFile = rootProject.file('keystore.properties')
+if (keystoreFile.exists()) keystoreFile.withInputStream { keystoreProps.load(it) }
+def signingValue = { String key -> keystoreProps.getProperty(key) ?: System.getenv("DOCSCAN_${key.toUpperCase()}") }
+
 android {
     namespace = "com.docscan.ocr"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -16,8 +24,19 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        release {
+            if (signingValue('storeFile')) {
+                storeFile file(signingValue('storeFile'))
+                storePassword signingValue('storePassword')
+                keyAlias signingValue('keyAlias')
+                keyPassword signingValue('keyPassword')
+            }
+        }
+    }
     buildTypes {
         release {
+            if (signingValue('storeFile')) signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

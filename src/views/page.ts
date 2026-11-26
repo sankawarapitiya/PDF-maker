@@ -8,6 +8,7 @@ import { actionButton, confirmDialog, h, iconButton, toast } from '../ui';
 import { cropEditor } from './crop';
 import { movePage } from './doc';
 import type { Page } from '../types';
+import { shareToWhatsApp } from '../whatsapp';
 
 const FILTERS: [FilterName, string][] = [
   ['original', 'Original'],
@@ -174,7 +175,17 @@ export async function pageView([docId, pageId]: string[]) {
       actionButton('rotr', 'Right', () => edit({ rotation: (page!.rotation + 1) % 4 })),
       actionButton('crop', 'Crop', recrop),
       actionButton('ocr', 'OCR', doOcr),
-      actionButton('share', 'Image', () => shareOrDownload(page!.processed, `${safeName(doc!.name)}-${doc!.pageIds.indexOf(page!.id) + 1}.jpg`, doc!.name)),
+      actionButton('whatsapp', 'WhatsApp', async () => {
+        try {
+          const r = await shareToWhatsApp(
+            [{ blob: page!.processed, name: `${safeName(doc!.name)}-${doc!.pageIds.indexOf(page!.id) + 1}.jpg` }],
+          );
+          if (r === 'downloaded') toast('Saved — attach the image in WhatsApp');
+        } catch (e) {
+          toast(/not installed/i.test(String((e as Error).message)) ? 'WhatsApp is not installed' : 'Could not share');
+        }
+      }, 'wa'),
+      actionButton('share', 'Share', () => shareOrDownload(page!.processed, `${safeName(doc!.name)}-${doc!.pageIds.indexOf(page!.id) + 1}.jpg`, doc!.name)),
     ),
     textPanel,
   );

@@ -9,7 +9,9 @@ It runs as an installable **PWA** in any modern mobile browser, and as a **nativ
 - **Perspective correction**: auto-detected corners, draggable corner and edge handles with a magnifier loupe, plus "Auto" and "Full page" presets.
 - **Scan filters**: Original, Magic color (removes shadows and whitens paper), Grayscale, and adaptive Black & White.
 - **Multi-page documents**: add pages by camera or gallery import, reorder, rotate, re-crop, and delete.
-- **Offline OCR**: Tesseract (WASM), with English bundled. 25 more languages (including Sinhala, Tamil, Hindi, Arabic, Chinese, and Japanese) are downloaded once on first use. Multiple languages can be selected at once.
+- **Offline OCR**: Tesseract (WASM), with English built in.
+- **Language downloader** (Settings → Text recognition): download, cancel, or delete packs for 40+ languages, including Sinhala, Tamil, Hindi, Arabic, Chinese, and Japanese. You can see progress and size for each pack. Downloaded packs are stored on the device, work offline, and can be combined (for example, English + Sinhala).
+- **Share to WhatsApp**: send the PDF, page images, or recognised text. The Android app opens WhatsApp (or WhatsApp Business) directly with the files attached. On iOS and in mobile browsers, the system share sheet opens and you pick WhatsApp. Text-only messages go through a wa.me link.
 - **Searchable PDF export**: an invisible text layer sits under each page image, so the PDF can be searched and its text selected. Page size can be Fit, A4, or Letter.
 - **Text tools**: per-page and whole-document text, word-box overlay with confidence highlighting, copy, and share as .txt.
 - **Library search** across document names *and* recognised text.
@@ -26,6 +28,21 @@ npm run preview
 ```
 
 To try it on a phone, serve `dist/` over HTTPS (any static host works, such as GitHub Pages, Netlify, or Vercel), open it, and use **Add to Home screen** or **Install app**.
+
+### Android APK
+
+```bash
+npm run build && npx cap sync android
+cd android && ./gradlew assembleDebug        # → android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+You need JDK 21 and the Android SDK (platform 36). Set `ANDROID_HOME`, or set `sdk.dir` in `android/local.properties`.
+
+For a **signed release APK**:
+1. Create `android/keystore.properties` (it's gitignored) with `storeFile`, `storePassword`, `keyAlias`, and `keyPassword`.
+2. Run `./gradlew assembleRelease`.
+
+The GitHub Actions workflow (`.github/workflows/android.yml`) builds the debug APK on every push and uploads it as an artifact. It also builds a signed release APK when the `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, and `ANDROID_KEY_PASSWORD` secrets are set.
 
 ### Native apps (Capacitor)
 
@@ -59,7 +76,9 @@ Screenshots are written to `test-results/`.
 | --- | --- |
 | `src/imaging.ts` | Pure image processing: document detection, homography/perspective warp, filters, rotation |
 | `src/process*.ts` | Crop → filter → rotate → JPEG pipeline, run in a Web Worker |
-| `src/ocr.ts` | Tesseract worker management, languages, word boxes |
+| `src/ocr.ts` | Tesseract worker management, word boxes |
+| `src/langs.ts`, `src/views/languages.ts` | Language pack downloader and storage, plus its Settings UI |
+| `src/whatsapp.ts`, `android/…/WhatsAppSharePlugin.java` | WhatsApp sharing (a native Android plugin that targets WhatsApp directly) |
 | `src/pdf.ts` | Searchable PDF builder (jsPDF + invisible text layer) |
 | `src/db.ts` | IndexedDB storage for documents, pages and settings |
 | `src/pipeline.ts` | Capture preparation, page building, background OCR queue |
