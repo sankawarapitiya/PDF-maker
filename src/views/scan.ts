@@ -72,7 +72,7 @@ export function scanView(docId?: string): { el: HTMLElement; destroy: () => void
   const video = h('video', { class: 'cam-video', playsinline: true, muted: true, autoplay: true });
   video.muted = true;
   const overlay = h('canvas', { class: 'cam-overlay' });
-  const hint = h('div', { class: 'cam-hint' }, 'Point the camera at a document');
+  const hint = h('div', { class: 'cam-hint' }, 'Looking for a document…');
   const viewport = h('div', { class: 'cam-viewport' }, video, overlay, hint);
   const counter = h('span', { class: 'badge', hidden: true }, '0');
   const doneBtn = h(
@@ -176,7 +176,7 @@ export function scanView(docId?: string): { el: HTMLElement; destroy: () => void
     drawOverlay(full, vw, vh);
     if (!full) {
       lastQuads = [];
-      hint.textContent = 'Point the camera at a document';
+      hint.textContent = 'Place the document on a darker surface';
       hint.hidden = false;
       return;
     }
@@ -206,11 +206,23 @@ export function scanView(docId?: string): { el: HTMLElement; destroy: () => void
     g.beginPath();
     q.forEach((p, i) => (i ? g.lineTo(ox + p.x * s, oy + p.y * s) : g.moveTo(ox + p.x * s, oy + p.y * s)));
     g.closePath();
-    g.fillStyle = 'rgba(79,140,255,0.18)';
+    const ready = autoCapture && lastQuads.length >= 4;
+    g.fillStyle = ready ? 'rgba(245,165,36,0.16)' : 'rgba(94,234,212,0.14)';
     g.fill();
     g.lineWidth = 3;
-    g.strokeStyle = '#4f8cff';
+    g.lineJoin = 'round';
+    g.strokeStyle = ready ? '#F5A524' : '#5EEAD4';
+    g.shadowColor = g.strokeStyle;
+    g.shadowBlur = 12;
     g.stroke();
+    g.shadowBlur = 0;
+    // Corner dots
+    g.fillStyle = '#fff';
+    for (const p of q) {
+      g.beginPath();
+      g.arc(ox + p.x * s, oy + p.y * s, 5, 0, Math.PI * 2);
+      g.fill();
+    }
   }
 
   async function grabFrame(): Promise<Blob> {

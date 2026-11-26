@@ -1,6 +1,6 @@
 {
   "name": "docscan-ocr",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Mobile document scanner with offline OCR and searchable PDF export (PWA + Capacitor)",
   "scripts": {
     "postinstall": "node scripts/copy-ocr-assets.mjs",
@@ -9,10 +9,10 @@
     "preview": "vite preview --host",
     "test": "vitest run",
     "test:e2e": "node tests/e2e.mjs",
-    "icons": "node scripts/make-icons.mjs",
     "cap:sync": "npm run build && cap sync",
     "android": "npm run cap:sync && cap open android",
-    "ios": "npm run cap:sync && cap open ios"
+    "ios": "npm run cap:sync && cap open ios",
+    "brand": "node scripts/brand.mjs --native"
   },
   "repository": {
     "type": "git",
@@ -29,12 +29,16 @@
     "@capacitor/core": "^8.6.3",
     "@capacitor/filesystem": "^8.1.5",
     "@capacitor/share": "^8.0.3",
+    "@capacitor/splash-screen": "^8.0.2",
+    "@fontsource-variable/inter": "^5.3.0",
     "idb-keyval": "^6.3.0",
     "jspdf": "^4.2.1",
+    "lucide": "^1.81.0",
     "tesseract.js": "^7.0.0"
   },
   "devDependencies": {
     "@capacitor/android": "^8.6.3",
+    "@capacitor/assets": "^4.0.0",
     "@capacitor/cli": "^8.6.3",
     "@capacitor/ios": "^8.6.3",
     "@tesseract.js-data/eng": "^1.0.0",

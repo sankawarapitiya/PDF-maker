@@ -18,7 +18,20 @@ export async function docView([id]: string[]) {
   const title = h('h2', { class: 'title-edit' }, doc.name);
   const grid = h('div', { class: 'page-grid' });
 
+  const summary = h('div', { class: 'doc-summary' });
+  function renderSummary() {
+    const withText = pages.filter((p) => p.ocr).length;
+    const words = pages.reduce((n, p) => n + (p.ocr?.words.length ?? 0), 0);
+    summary.replaceChildren(
+      h('span', { class: 'tag-pill' }, icon('pages', 12), `${pages.length} page${pages.length === 1 ? '' : 's'}`),
+      withText
+        ? h('span', { class: 'tag-pill' }, icon('ocr', 12), `${withText}/${pages.length} searchable · ${words} words`)
+        : h('span', { class: 'tag-pill amber' }, 'Text not recognised yet'),
+    );
+  }
+
   function renderGrid() {
+    renderSummary();
     grid.replaceChildren(
       ...pages.map((p, i) => {
         const prog = ocrProgress(p.id);
@@ -30,7 +43,7 @@ export async function docView([id]: string[]) {
           prog !== undefined
             ? h('span', { class: 'ocr-badge busy' }, `OCR ${Math.round(prog * 100)}%`)
             : p.ocr
-              ? h('span', { class: 'ocr-badge' }, 'Text')
+              ? h('span', { class: 'ocr-badge' }, icon('check', 11), 'Text')
               : null,
         );
       }),
@@ -144,7 +157,7 @@ export async function docView([id]: string[]) {
         navigate('/', true);
       }),
     ),
-    h('main', { class: 'content' }, grid),
+    h('main', { class: 'content' }, summary, grid),
     h(
       'nav',
       { class: 'action-bar' },

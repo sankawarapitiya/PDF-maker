@@ -76,7 +76,7 @@ export function cropEditor(opts: CropOptions): HTMLElement {
     g.fillRect(0, 0, 220, 220);
     g.drawImage(img, p.x - sw / 2, p.y - sw / 2, sw, sw, 0, 0, 220, 220);
     g.restore();
-    g.strokeStyle = '#4f8cff';
+    g.strokeStyle = '#F5A524';
     g.lineWidth = 2;
     g.beginPath();
     g.moveTo(110, 90); g.lineTo(110, 130); g.moveTo(90, 110); g.lineTo(130, 110);

@@ -66,7 +66,10 @@ try {
   page.on('console', (m) => { if (process.env.DEBUG) console.log('[console]', m.type(), m.text()); if (m.type() === 'error') errors.push(m.text()); });
 
   await page.goto(`http://localhost:${PORT}/`);
-  await page.getByText('No scans yet').waitFor();
+  await page.waitForTimeout(350);
+  await shot(page, '0-splash');
+  await page.locator('#splash').waitFor({ state: 'detached', timeout: 5000 });
+  await page.getByText('Your scans will appear here').waitFor();
   await shot(page, '1-library-empty');
 
   // Camera with live detection
@@ -148,13 +151,17 @@ try {
 
   // Library search finds the document by its OCR text
   await page.goto(`http://localhost:${PORT}/`);
+  await page.locator('#splash').waitFor({ state: 'detached', timeout: 5000 });
   await page.getByLabel('Search').fill('brown fox');
   await page.locator('.snippet').waitFor();
   await shot(page, '7-library-search');
+  await page.getByLabel('Search').fill('');
+  await shot(page, '7b-library');
 
   // Settings
   await page.getByLabel('Settings').click();
   await page.getByText('Text recognition (OCR)').waitFor();
+  await page.waitForTimeout(300);
   await shot(page, '8-settings');
 
   // Language downloader (needs network access to cdn.jsdelivr.net; skip with SKIP_LANG=1)

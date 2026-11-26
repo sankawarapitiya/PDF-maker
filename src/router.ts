@@ -46,11 +46,11 @@ export async function render() {
   navigate('/', true);
 }
 
-export function startRouter(el: HTMLElement) {
+export function startRouter(el: HTMLElement): Promise<void> {
   outlet = el;
   window.addEventListener('popstate', () => {
     depth = Math.max(0, depth - 1);
     render();
   });
-  render();
+  return render();
 }

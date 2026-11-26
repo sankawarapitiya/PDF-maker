@@ -3,6 +3,30 @@
 A mobile document scanner with offline text recognition (OCR) and searchable-PDF export.
 It runs as an installable **PWA** in any modern mobile browser, and as a **native Android/iOS app** through Capacitor.
 
+## Design
+
+**Palette: Deep Teal & Amber.** Teal is the brand colour and primary action. Amber is the "scan beam" highlight. Ink and paper neutrals are used for text and surfaces, and dark mode follows the system.
+
+| Token | Hex | Use |
+| --- | --- | --- |
+| Teal 700 | `#0F766E` | Brand, primary buttons, splash background |
+| Teal 900 | `#063F3B` | Gradient depth |
+| Teal 300 | `#5EEAD4` | Accents on dark, detection overlay |
+| Amber 500 | `#F5A524` | Scan beam, highlights, busy states |
+| Ink | `#0B1416` | Text; dark-mode background |
+| Paper | `#F3F6F5` | Light-mode background |
+
+The typeface is Inter (bundled, so it works offline) and the icons are [Lucide](https://lucide.dev).
+
+**All brand artwork is generated from code** in `scripts/brand.mjs`:
+- the logo
+- PWA icons
+- Android adaptive and themed icons
+- iOS app icon
+- light and dark splash screens
+
+`npm run brand` regenerates every platform asset. The launch sequence is the native splash (on Android 12+ this uses the system SplashScreen API), then a matching animated web splash, then the app.
+
 ## Features
 
 - **Live camera scanning**: the page outline is detected in real time; optional auto-capture fires when the page is held steady; flash toggle where the device supports it.

@@ -14,8 +14,8 @@ export default defineConfig({
         name: 'DocScan OCR',
         short_name: 'DocScan',
         description: 'Scan documents, recognise text offline and export searchable PDFs.',
-        theme_color: '#0f172a',
-        background_color: '#0f172a',
+        theme_color: '#0F766E',
+        background_color: '#0F766E',
         display: 'standalone',
         orientation: 'portrait',
         start_url: './',
@@ -29,7 +29,7 @@ export default defineConfig({
       },
       workbox: {
         // Precache the app shell and the offline OCR engine + English model.
-        globPatterns: ['**/*.{js,css,html,svg,png,wasm,gz}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,wasm,gz,woff2}'],
         // Precache the SIMD build used by virtually all current phones; the
         // fallback builds are cached on first use.
         globIgnores: ['tesseract/core/tesseract-core-lstm*', 'tesseract/core/tesseract-core-relaxedsimd*'],

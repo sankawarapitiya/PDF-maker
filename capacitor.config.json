@@ -2,6 +2,23 @@
   "appId": "com.docscan.ocr",
   "appName": "DocScan OCR",
   "webDir": "dist",
+  "backgroundColor": "#0F766E",
   "android": { "allowMixedContent": false },
-  "ios": { "contentInset": "never" }
+  "ios": { "contentInset": "never" },
+  "plugins": {
+    "SplashScreen": {
+      "launchAutoHide": false,
+      "launchShowDuration": 4000,
+      "launchFadeOutDuration": 200,
+      "backgroundColor": "#0F766E",
+      "androidScaleType": "CENTER_CROP",
+      "showSpinner": false,
+      "splashFullScreen": false,
+      "splashImmersive": false
+    },
+    "SystemBars": {
+      "insetsHandling": "css",
+      "initialViewportFitValueHint": "cover"
+    }
+  }
 }

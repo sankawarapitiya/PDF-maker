@@ -1,7 +1,7 @@
 import { getSettings, saveSettings, storageEstimate } from '../db';
 import { languageManager } from './languages';
 import { back } from '../router';
-import { h, iconButton } from '../ui';
+import { h, icon, iconButton } from '../ui';
 import type { Settings } from '../types';
 import { installPrompt } from '../pwa';
 
@@ -41,23 +41,27 @@ export async function settingsView() {
     h(
       'main',
       { class: 'content settings' },
-      h('section', null, h('h3', null, 'Scanning'),
+      h('section', null, h('h3', null, icon('camera', 16), 'Scanning'),
         toggle('autoCapture', 'Auto-capture', 'Take the photo automatically when the document is steady'),
         h('label', { class: 'row' }, h('strong', null, 'Default filter'),
           select('defaultFilter', [['enhance', 'Magic color'], ['original', 'Original'], ['gray', 'Grayscale'], ['bw', 'Black & white']])),
       ),
-      h('section', null, h('h3', null, 'Text recognition (OCR)'),
+      h('section', null, h('h3', null, icon('languages', 16), 'Text recognition (OCR)'),
         toggle('autoOcr', 'Recognise text automatically', 'Run OCR in the background after each scan'),
         langs.el,
       ),
-      h('section', null, h('h3', null, 'PDF export'),
+      h('section', null, h('h3', null, icon('pdf', 16), 'PDF export'),
         h('label', { class: 'row' }, h('strong', null, 'Page size'),
           select('pageSize', [['auto', 'Fit to scan'], ['a4', 'A4'], ['letter', 'US Letter']])),
         h('label', { class: 'row' }, h('strong', null, 'Image quality'),
           select('jpegQuality', [['0.7', 'Smaller file'], ['0.85', 'Balanced'], ['0.95', 'Best']], Number)),
       ),
-      h('section', null, h('h3', null, 'App'), storage, installBtn,
-        h('p', { class: 'muted' }, 'All scans and text stay on this device. Nothing is uploaded.')),
+      h('section', null, h('h3', null, icon('shield', 16), 'Privacy & app'),
+        h('div', { class: 'about' },
+          h('img', { src: new URL('icons/icon.svg', new URL(import.meta.env.BASE_URL, location.href)).href, alt: '' }),
+          h('div', null, h('strong', null, 'DocScan OCR'), h('div', { class: 'muted' }, 'Version 1.1 · ', storage))),
+        h('p', { class: 'muted', style: 'margin:0' }, 'All scans and recognised text stay on this device. Nothing is uploaded.'),
+        installBtn),
     ),
   );
   return { el, destroy: langs.destroy };

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 12+ splash icon: logo glyph inset to sit inside the system's circular mask
+     (the splash background colour is the brand teal / ink in dark mode). -->
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@mipmap/ic_launcher_foreground"
+    android:inset="14%" />

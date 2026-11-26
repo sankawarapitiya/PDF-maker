@@ -1,3 +1,10 @@
+import {
+  createElement, AlignLeft, ArrowLeft, ArrowRight, Camera, Check, ChevronLeft, ChevronRight, Clock3, Copy,
+  Crop, Download, EllipsisVertical, FileStack, FileText, Focus, FolderOpen, Images, Languages, PenLine,
+  Plus, RotateCcw, RotateCw, ScanLine, ScanSearch, ScanText, Search, Settings, Share2, ShieldCheck,
+  Sparkles, Trash2, X, Zap, type IconNode,
+} from 'lucide';
+
 type Child = Node | string | number | null | undefined | false | Child[];
 type Props = Record<string, unknown> & { class?: string; style?: string };
 
@@ -30,46 +37,35 @@ function append(el: Node, children: Child[]) {
   }
 }
 
-const ICONS: Record<string, string> = {
-  camera: 'M9 3 7.2 5H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.2L15 3H9Zm3 5a5 5 0 1 1 0 10 5 5 0 0 1 0-10Zm0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z',
-  image: 'M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Zm0 13v3h14v-5l-4-4-6 6-2-2-2 2Zm3-9a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z',
-  back: 'M15.4 5.4 14 4l-8 8 8 8 1.4-1.4L8.8 12z',
-  close: 'M18.3 5.7 17 4.3 12 9.3 7 4.3 5.7 5.7l5 5-5 5L7 17.1l5-5 5 5 1.4-1.4-5-5z',
-  settings: 'M19.4 13a7.5 7.5 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7 7 0 0 0-1.7-1L15 3h-4l-.4 2.9a7 7 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.5 7.5 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7 7 0 0 0 1.7 1L11 21h4l.4-2.9a7 7 0 0 0 1.7-1l2.5 1 2-3.5-2.2-1.6ZM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7Z',
-  pdf: 'M6 2h8l6 6v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Zm7 1.5V9h5.5L13 3.5ZM8 13v5h1.3v-1.6h.8a1.7 1.7 0 0 0 0-3.4H8Zm1.3 1.1h.7a.6.6 0 0 1 0 1.2h-.7v-1.2Zm3-1.1v5h1.5a2.5 2.5 0 0 0 0-5h-1.5Zm1.3 1.1h.2a1.4 1.4 0 0 1 0 2.8h-.2v-2.8Zm2.9-1.1v5h1.3v-2h1.7v-1.1h-1.7v-.8h1.9V13h-3.2Z',
-  share: 'M18 16a3 3 0 0 0-2.4 1.2l-6.7-3.4a3 3 0 0 0 0-1.6l6.7-3.4A3 3 0 1 0 15 7l-6.7 3.4a3 3 0 1 0 0 3.2L15 17a3 3 0 1 0 3-1Z',
-  text: 'M4 5h16v2H4zm0 4h16v2H4zm0 4h10v2H4zm0 4h16v2H4z',
-  trash: 'M9 3h6l1 1h4v2H4V4h4l1-1Zm-3 5h12l-1 13H7L6 8Zm4 2v9h1.5v-9H10Zm3.5 0v9H15v-9h-1.5Z',
-  rotl: 'M7.1 8.5 5.7 7.1A8 8 0 0 0 4 11h2a6 6 0 0 1 1.1-2.5ZM6 13H4a8 8 0 0 0 1.7 3.9l1.4-1.4A6 6 0 0 1 6 13Zm1.1 5.3A8 8 0 0 0 11 20v-2a6 6 0 0 1-2.5-1.1l-1.4 1.4ZM13 4.1V1L8.5 5.5 13 10V6.1A6 6 0 0 1 13 18v2a8 8 0 0 0 0-15.9Z',
-  rotr: 'M15.5 5.5 11 1v3.1A8 8 0 0 0 11 20v-2a6 6 0 0 1 0-11.9V10l4.5-4.5Zm4.4 5.5a8 8 0 0 0-1.6-3.9l-1.4 1.4A6 6 0 0 1 17.9 11h2Zm-6.9 6.9V20a8 8 0 0 0 3.9-1.6l-1.4-1.4a6 6 0 0 1-2.5 1Zm3.9-2.5 1.4 1.4A8 8 0 0 0 19.9 13h-2a6 6 0 0 1-1.1 2.4Z',
-  crop: 'M17 15h2V7a2 2 0 0 0-2-2H9v2h8v8ZM7 17V1H5v4H1v2h4v10a2 2 0 0 0 2 2h10v4h2v-4h4v-2H7Z',
-  ocr: 'M3 5v4h2V5h4V3H5a2 2 0 0 0-2 2Zm2 10H3v4a2 2 0 0 0 2 2h4v-2H5v-4Zm14 4h-4v2h4a2 2 0 0 0 2-2v-4h-2v4Zm0-16h-4v2h4v4h2V5a2 2 0 0 0-2-2ZM7 8h10v2H7zm0 3h10v2H7zm0 3h7v2H7z',
-  copy: 'M16 1H4a2 2 0 0 0-2 2v14h2V3h12V1Zm3 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2Zm0 16H8V7h11v14Z',
-  plus: 'M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2Z',
-  check: 'M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2Z',
-  flash: 'M7 2v11h3v9l7-12h-4l4-8H7Z',
-  auto: 'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm-1 5h2l3.5 10h-2.1l-.8-2.4h-3.2L9.6 17H7.5L11 7Zm1 2.6-1 3.2h2l-1-3.2Z',
-  left: 'M15.4 7.4 14 6l-6 6 6 6 1.4-1.4L10.8 12z',
-  right: 'M8.6 16.6 10 18l6-6-6-6-1.4 1.4 4.6 4.6z',
-  search: 'M15.5 14h-.8l-.3-.3A6.5 6.5 0 1 0 14 15.5l.3.3v.8l5 5 1.5-1.5-5-5Zm-6 0a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9Z',
-  edit: 'M3 17.2V21h3.8l11-11-3.8-3.8-11 11ZM20.7 7a1 1 0 0 0 0-1.4l-2.3-2.3a1 1 0 0 0-1.4 0l-1.8 1.8 3.7 3.7L20.7 7Z',
-  whatsapp: 'M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2c-1.5 0-3-.4-4.3-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.5l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7c.1.2 1.9 2.8 4.5 3.9 1.7.7 2.3.8 3.2.7.5-.1 1.5-.6 1.8-1.2.2-.6.2-1.1.1-1.2l-.5-.3Z',
-  download: 'M5 20h14v-2H5v2Zm14-11h-4V3H9v6H5l7 7 7-7Z',
-  boxes: 'M3 3h8v8H3V3Zm2 2v4h4V5H5Zm8-2h8v8h-8V3Zm2 2v4h4V5h-4ZM3 13h8v8H3v-8Zm2 2v4h4v-4H5Zm8-2h8v8h-8v-8Zm2 2v4h4v-4h-4Z',
+const ICONS: Record<string, IconNode> = {
+  camera: Camera, scan: ScanLine, image: Images, back: ChevronLeft, close: X, settings: Settings,
+  pdf: FileText, share: Share2, text: AlignLeft, trash: Trash2, rotl: RotateCcw, rotr: RotateCw,
+  crop: Crop, ocr: ScanText, copy: Copy, plus: Plus, check: Check, flash: Zap, auto: Focus,
+  left: ArrowLeft, right: ArrowRight, search: Search, edit: PenLine, boxes: ScanSearch,
+  download: Download, more: EllipsisVertical, languages: Languages, shield: ShieldCheck,
+  sparkles: Sparkles, pages: FileStack, folder: FolderOpen, clock: Clock3, chevron: ChevronRight,
 };
 
-export function icon(name: keyof typeof ICONS | string, size = 24): SVGSVGElement {
-  const ns = 'http://www.w3.org/2000/svg';
-  const svg = document.createElementNS(ns, 'svg');
-  svg.setAttribute('viewBox', '0 0 24 24');
+/** WhatsApp brand glyph (filled); Lucide has no brand icons. */
+const WHATSAPP_PATH = 'M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2c-1.5 0-3-.4-4.3-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.5l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7c.1.2 1.9 2.8 4.5 3.9 1.7.7 2.3.8 3.2.7.5-.1 1.5-.6 1.8-1.2.2-.6.2-1.1.1-1.2l-.5-.3Z';
+
+export function icon(name: string, size = 24): SVGElement {
+  let svg: SVGElement;
+  if (name === 'whatsapp') {
+    const ns = 'http://www.w3.org/2000/svg';
+    svg = document.createElementNS(ns, 'svg');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    const p = document.createElementNS(ns, 'path');
+    p.setAttribute('d', WHATSAPP_PATH);
+    p.setAttribute('fill', 'currentColor');
+    svg.appendChild(p);
+  } else {
+    svg = createElement(ICONS[name] ?? ICONS.sparkles, { 'stroke-width': 1.9 });
+  }
   svg.setAttribute('width', String(size));
   svg.setAttribute('height', String(size));
   svg.setAttribute('aria-hidden', 'true');
   svg.classList.add('icon');
-  const p = document.createElementNS(ns, 'path');
-  p.setAttribute('d', ICONS[name] ?? '');
-  p.setAttribute('fill', 'currentColor');
-  svg.appendChild(p);
   return svg;
 }
 
@@ -186,6 +182,7 @@ export interface SheetOption {
   label: string;
   icon: string;
   hint?: string;
+  danger?: boolean;
 }
 
 /** Bottom action sheet; resolves with the chosen index or null. */
@@ -207,7 +204,7 @@ export function actionSheet(title: string, options: SheetOption[]): Promise<numb
         options.map((o, i) =>
           h(
             'button',
-            { class: 'sheet-item', onClick: () => close(i) },
+            { class: `sheet-item ${o.danger ? 'danger' : ''}`, onClick: () => close(i) },
             icon(o.icon, 24),
             h('span', null, h('strong', null, o.label), o.hint && h('small', null, o.hint)),
           ),

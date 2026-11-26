@@ -1,4 +1,6 @@
+import '@fontsource-variable/inter';
 import './styles.css';
+import { hideNativeSplash, hideSplash } from './splash';
 import './pwa';
 import { registerSW } from 'virtual:pwa-register';
 import { route, startRouter, type View } from './router';
@@ -22,7 +24,8 @@ route(/^\/settings$/, settingsView);
 events.addEventListener('error', (e) => toast(String((e as CustomEvent).detail)));
 navigator.storage?.persist?.();
 
-startRouter(document.getElementById('app')!);
+hideNativeSplash();
+startRouter(document.getElementById('app')!).then(hideSplash, hideSplash);
 
 // Native builds bundle all assets already; the service worker is for the PWA.
 if (import.meta.env.PROD && !isNative()) {
