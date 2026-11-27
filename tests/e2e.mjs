@@ -114,6 +114,7 @@ try {
   await page.locator('.ocr-badge:text("Text")').nth(1).waitFor({ timeout: 120000 });
 
   // Export PDF
+  await page.getByText('Export', { exact: true }).click();
   const [dl] = await Promise.all([page.waitForEvent('download'), page.getByText('Save PDF').click()]);
   const pdfPath = join(out, 'scan.pdf');
   await dl.saveAs(pdfPath);

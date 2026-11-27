@@ -150,7 +150,11 @@ export async function libraryView() {
           { class: 'doc-meta' },
           h('strong', null, d.name),
           h('small', null, icon('clock', 13), formatDate(d.updatedAt)),
-          snip ?? (d.text
+          snip ?? (d.upload?.status === 'uploaded'
+            ? h('span', { class: 'tag-pill' }, icon('cloud', 12), `Uploaded · ${d.upload.remoteDocId}`)
+            : d.upload
+              ? h('span', { class: 'tag-pill amber' }, icon('upload', 12), d.upload.status === 'failed' ? 'Upload failed' : 'Upload pending')
+              : d.text
             ? h('span', { class: 'tag-pill' }, icon('ocr', 12), 'Searchable')
             : h('span', { class: 'tag-pill amber' }, `${n} page${n === 1 ? '' : 's'}`)),
         ),

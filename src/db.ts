@@ -9,6 +9,16 @@ export const uid = () =>
   (crypto.randomUUID?.() ?? `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`);
 
 export const DEFAULT_SETTINGS: Settings = {
+  server: {
+    enabled: false,
+    url: '',
+    authMethod: 'token',
+    username: '',
+    docIdPattern: '^[A-Za-z0-9][A-Za-z0-9._-]{2,63}$',
+    includeText: true,
+    deleteAfterUpload: false,
+  },
+  security: { lockEnabled: false, autoLockMinutes: 1, blockScreenshots: false },
   ocrLangs: ['eng'],
   autoOcr: true,
   autoCapture: false,
@@ -18,7 +28,13 @@ export const DEFAULT_SETTINGS: Settings = {
 };
 
 export async function getSettings(): Promise<Settings> {
-  return { ...DEFAULT_SETTINGS, ...((await get('settings', metaStore)) ?? {}) };
+  const saved: Partial<Settings> = (await get('settings', metaStore)) ?? {};
+  return {
+    ...DEFAULT_SETTINGS,
+    ...saved,
+    server: { ...DEFAULT_SETTINGS.server, ...saved.server },
+    security: { ...DEFAULT_SETTINGS.security, ...saved.security },
+  };
 }
 
 export async function saveSettings(s: Settings): Promise<void> {
@@ -73,6 +89,25 @@ export async function refreshDocCache(doc: Doc): Promise<Doc> {
   doc.text = pages.map((p) => p.ocr?.text ?? '').join('\n\n').trim();
   await saveDoc(doc);
   return doc;
+}
+
+/** Delete every local database, cache and preference (used by "Erase all data"). */
+export async function eraseEverything(): Promise<void> {
+  const names = ['docscan-docs', 'docscan-pages', 'docscan-meta', 'docscan-langs', 'docscan-vault', 'keyval-store'];
+  const listed = (await indexedDB.databases?.().catch(() => [])) ?? [];
+  for (const n of new Set([...names, ...listed.map((d) => d.name!).filter(Boolean)])) {
+    await new Promise<void>((r) => {
+      const req = indexedDB.deleteDatabase(n);
+      req.onsuccess = req.onerror = req.onblocked = () => r();
+    });
+  }
+  for (const k of (await caches?.keys?.().catch(() => [])) ?? []) await caches.delete(k);
+  try {
+    localStorage.clear();
+    sessionStorage.clear();
+  } catch {
+    /* ignore */
+  }
 }
 
 export async function storageEstimate(): Promise<string> {

@@ -4,8 +4,10 @@ import { back } from '../router';
 import { h, icon, iconButton } from '../ui';
 import type { Settings } from '../types';
 import { installPrompt } from '../pwa';
+import { serverSection } from './settings-server';
+import { securitySection } from './settings-security';
 
-export async function settingsView() {
+export async function settingsView([section]: string[] = []) {
   const s = await getSettings();
   const save = async (patch: Partial<Settings>) => {
     Object.assign(s, patch);
@@ -56,13 +58,16 @@ export async function settingsView() {
         h('label', { class: 'row' }, h('strong', null, 'Image quality'),
           select('jpegQuality', [['0.7', 'Smaller file'], ['0.85', 'Balanced'], ['0.95', 'Best']], Number)),
       ),
+      await serverSection(),
+      await securitySection(),
       h('section', null, h('h3', null, icon('shield', 16), 'Privacy & app'),
         h('div', { class: 'about' },
           h('img', { src: new URL('icons/icon.svg', new URL(import.meta.env.BASE_URL, location.href)).href, alt: '' }),
-          h('div', null, h('strong', null, 'DocScan OCR'), h('div', { class: 'muted' }, 'Version 1.1 · ', storage))),
-        h('p', { class: 'muted', style: 'margin:0' }, 'All scans and recognised text stay on this device. Nothing is uploaded.'),
+          h('div', null, h('strong', null, 'DocScan OCR'), h('div', { class: 'muted' }, 'Version 1.2 · ', storage))),
+        h('p', { class: 'muted', style: 'margin:0' }, 'Scans and recognised text stay on this device unless you upload them to your own server.'),
         installBtn),
     ),
   );
+  if (section) requestAnimationFrame(() => el.querySelector(`#${CSS.escape(section)}`)?.scrollIntoView({ block: 'start' }));
   return { el, destroy: langs.destroy };
 }

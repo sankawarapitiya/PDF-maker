@@ -36,6 +36,21 @@ export interface Page {
   ocr?: OcrResult;
 }
 
+export type UploadStatus = 'queued' | 'uploading' | 'uploaded' | 'failed';
+
+export interface UploadState {
+  status: UploadStatus;
+  remoteDocId: string;
+  includeText: boolean;
+  /** Stable per upload request; sent as Idempotency-Key so retries never duplicate. */
+  attemptId: string;
+  attempts: number;
+  updatedAt: number;
+  nextRetryAt?: number;
+  error?: string;
+  receipt?: { uploadId: string; sha256: string; bytes: number; receivedAt: number };
+}
+
 export interface Doc {
   id: string;
   name: string;
@@ -46,11 +61,35 @@ export interface Doc {
   thumb?: string;
   /** Cached concatenated OCR text for search */
   text?: string;
+  /** Doc-ID last used to upload this document to the server */
+  remoteDocId?: string;
+  upload?: UploadState;
+  uploadHistory?: (NonNullable<UploadState['receipt']> & { remoteDocId: string })[];
 }
 
 export type PageSize = 'auto' | 'a4' | 'letter';
 
+export interface ServerSettings {
+  enabled: boolean;
+  url: string;
+  authMethod: 'token' | 'password';
+  username: string;
+  docIdPattern: string;
+  includeText: boolean;
+  deleteAfterUpload: boolean;
+  serverName?: string;
+}
+
+export interface SecuritySettings {
+  lockEnabled: boolean;
+  /** Minutes in background before re-locking (0 = immediately) */
+  autoLockMinutes: number;
+  blockScreenshots: boolean;
+}
+
 export interface Settings {
+  server: ServerSettings;
+  security: SecuritySettings;
   ocrLangs: string[];
   autoOcr: boolean;
   autoCapture: boolean;

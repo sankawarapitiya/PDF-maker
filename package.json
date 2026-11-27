@@ -1,18 +1,20 @@
 {
   "name": "docscan-ocr",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Mobile document scanner with offline OCR and searchable PDF export (PWA + Capacitor)",
   "scripts": {
     "postinstall": "node scripts/copy-ocr-assets.mjs",
     "dev": "vite --host",
     "build": "node scripts/copy-ocr-assets.mjs && tsc -p . && vite build",
     "preview": "vite preview --host",
-    "test": "vitest run",
+    "test": "vitest run --dir tests && node --test server/server.test.mjs",
     "test:e2e": "node tests/e2e.mjs",
     "cap:sync": "npm run build && cap sync",
     "android": "npm run cap:sync && cap open android",
     "ios": "npm run cap:sync && cap open ios",
-    "brand": "node scripts/brand.mjs --native"
+    "brand": "node scripts/brand.mjs --native",
+    "test:e2e:upload": "node tests/e2e-upload.mjs",
+    "server": "node server/index.mjs"
   },
   "repository": {
     "type": "git",

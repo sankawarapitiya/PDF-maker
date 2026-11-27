@@ -13,19 +13,28 @@ import { scanView } from './views/scan';
 import { events } from './pipeline';
 import { toast } from './ui';
 import { isNative } from './share';
+import { getSettings } from './db';
+import { initLock, lockEvents } from './lock';
+import { setScreenshotBlocking } from './native';
+import { initUploads, resumeQueue } from './uploads';
 
 route(/^\/$/, libraryView);
 route(/^\/scan(?:\/([^/]+))?$/, ([docId]) => scanView(docId) as View);
 route(/^\/doc\/([^/]+)$/, docView);
 route(/^\/page\/([^/]+)\/([^/]+)$/, pageView);
 route(/^\/text\/([^/]+)$/, textView);
-route(/^\/settings$/, settingsView);
+route(/^\/settings(?:\/(\w+))?$/, settingsView);
 
 events.addEventListener('error', (e) => toast(String((e as CustomEvent).detail)));
 navigator.storage?.persist?.();
 
 hideNativeSplash();
 startRouter(document.getElementById('app')!).then(hideSplash, hideSplash);
+
+// Security: app lock, screenshot blocking, then resume any pending uploads.
+getSettings().then((s) => setScreenshotBlocking(s.security.blockScreenshots));
+lockEvents.addEventListener('unlocked', () => resumeQueue());
+initLock().then(() => initUploads());
 
 // Native builds bundle all assets already; the service worker is for the PWA.
 if (import.meta.env.PROD && !isNative()) {

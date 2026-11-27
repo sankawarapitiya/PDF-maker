@@ -3,10 +3,12 @@ import { buildPdf } from '../pdf';
 import { events, ocrProgress, runOcr } from '../pipeline';
 import { back, navigate } from '../router';
 import { download, safeName, shareOrDownload } from '../share';
-import { actionButton, actionSheet, confirmDialog, h, icon, iconButton, progressOverlay, promptDialog, toast } from '../ui';
+import { actionButton, actionSheet, confirmDialog, formatDate, h, icon, iconButton, progressOverlay, promptDialog, toast } from '../ui';
 import { importImages } from './scan';
 import type { Page } from '../types';
 import { shareToWhatsApp } from '../whatsapp';
+import { describe, resumeQueue, uploadEvents, type UploadEvent } from '../uploads';
+import { openUploadDialog } from './upload';
 
 export async function docView([id]: string[]) {
   const doc = await getDoc(id);
@@ -28,7 +30,46 @@ export async function docView([id]: string[]) {
         ? h('span', { class: 'tag-pill' }, icon('ocr', 12), `${withText}/${pages.length} searchable · ${words} words`)
         : h('span', { class: 'tag-pill amber' }, 'Text not recognised yet'),
     );
+    const pill = uploadPill();
+    if (pill) summary.append(pill);
   }
+
+  function uploadPill() {
+    const d = describe(doc!.upload);
+    if (!d) return null;
+    const ic = { ok: 'cloud', busy: 'upload', warn: 'refresh', err: 'alert' }[d.tone];
+    return h('button', {
+      class: `tag-pill upload-pill ${d.tone}`,
+      title: doc!.upload?.error ?? d.label,
+      onClick: () => uploadInfo(),
+    }, icon(ic, 12), d.label);
+  }
+
+  async function uploadInfo() {
+    const u = doc!.upload;
+    if (!u) return;
+    const opts = [
+      { label: 'Upload again', icon: 'upload', hint: `Doc-ID ${u.remoteDocId}` },
+      ...(u.status !== 'uploaded' ? [{ label: 'Retry now', icon: 'refresh', hint: u.error ?? 'Queued' }] : []),
+    ];
+    const receipt = u.receipt ? `Receipt ${u.receipt.uploadId} · ${formatDate(u.receipt.receivedAt)}` : (u.error ?? '');
+    const c = await actionSheet(receipt || 'Upload', opts);
+    if (c === 0) openUploadDialog(doc!);
+    else if (c === 1) resumeQueue(true);
+  }
+
+  const onUpload = async (e: Event) => {
+    const d = (e as CustomEvent<UploadEvent>).detail;
+    if (d.docId !== doc!.id || d.progress !== undefined) return;
+    if (d.deleted) {
+      toast('Uploaded — local copy removed');
+      return navigate('/', true);
+    }
+    const fresh = await getDoc(doc!.id);
+    if (fresh) doc!.upload = fresh.upload;
+    renderSummary();
+  };
+  uploadEvents.addEventListener('upload', onUpload);
 
   function renderGrid() {
     renderSummary();
@@ -169,14 +210,23 @@ export async function docView([id]: string[]) {
         renderGrid();
       }),
       actionButton('text', 'Text', ocrAll),
-      actionButton('pdf', 'Save PDF', () => exportPdf(false)),
+      actionButton('upload', 'Upload', () => openUploadDialog(doc!), 'primary'),
       actionButton('whatsapp', 'WhatsApp', whatsApp, 'wa'),
-      actionButton('share', 'Share', () => exportPdf(true), 'primary'),
+      actionButton('share', 'Export', async () => {
+        const c = await actionSheet('Export', [
+          { label: 'Share PDF', icon: 'share', hint: 'Send with any app' },
+          { label: 'Save PDF', icon: 'download', hint: 'Save to this device' },
+        ]);
+        if (c !== null) exportPdf(c === 0);
+      }),
     ),
   );
   return {
     el,
-    destroy: () => events.removeEventListener('ocr', onOcr),
+    destroy: () => {
+      events.removeEventListener('ocr', onOcr);
+      uploadEvents.removeEventListener('upload', onUpload);
+    },
   };
 }
 

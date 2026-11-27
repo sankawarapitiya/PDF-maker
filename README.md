@@ -38,6 +38,15 @@ The typeface is Inter (bundled, so it works offline) and the icons are [Lucide](
 - **Share to WhatsApp**: send the PDF, page images, or recognised text. The Android app opens WhatsApp (or WhatsApp Business) directly with the files attached. On iOS and in mobile browsers, the system share sheet opens and you pick WhatsApp. Text-only messages go through a wa.me link.
 - **Searchable PDF export**: an invisible text layer sits under each page image, so the PDF can be searched and its text selected. Page size can be Fit, A4, or Letter.
 - **Text tools**: per-page and whole-document text, word-box overlay with confidence highlighting, copy, and share as .txt.
+- **Upload to your server with a doc-ID:**
+  - Type the doc-ID or scan it from a barcode/QR code. It's validated against the server's format.
+  - Live progress, receipts, an offline queue with automatic retry, and an optional "remove local copy after upload".
+  - The API contract is in [`docs/SERVER_API.md`](docs/SERVER_API.md), and a ready-to-run reference server is in [`server/`](server/README.md).
+- **Security:**
+  - PIN app lock (PBKDF2-hashed, escalating lock-out, auto-lock in the background, content hidden in the app switcher).
+  - Credentials encrypted on the device (AES-256-GCM, non-exportable key). Passwords are never stored.
+  - HTTPS-only connections, with HMAC-signed requests protected against replay and SHA-256 integrity checks.
+  - Screenshot blocking on Android, no cloud backup of app data, and "Erase all data".
 - **Library search** across document names *and* recognised text.
 - **Private by design**: everything is stored on the device in IndexedDB, and nothing is uploaded.
 - **Offline-first**: a service worker precaches the app, the OCR engine, and the English model.
@@ -80,7 +89,8 @@ Camera permission is already declared in `AndroidManifest.xml` and `Info.plist`.
 ## Tests
 
 ```bash
-npm test                                   # unit tests (detection, homography, warp, filters, rotation)
+npm test                                   # unit tests + reference-server security tests
+npm run test:e2e:upload                    # server upload, sign-in, PIN lock, offline queue (after npm run build)
 npm run build && npm run test:e2e          # full browser flow with a fake camera (needs Playwright + poppler-utils)
 ```
 
@@ -102,6 +112,9 @@ Screenshots are written to `test-results/`.
 | `src/process*.ts` | Crop → filter → rotate → JPEG pipeline, run in a Web Worker |
 | `src/ocr.ts` | Tesseract worker management, word boxes |
 | `src/langs.ts`, `src/views/languages.ts` | Language pack downloader and storage, plus its Settings UI |
+| `src/server.ts`, `src/uploads.ts`, `src/views/upload.ts` | Signed API client, upload queue with retry, upload sheet |
+| `src/vault.ts`, `src/lock.ts`, `src/views/settings-security.ts` | Encrypted secret store, PIN app lock, security settings |
+| `server/` | Reference upload server (zero dependencies) + tests |
 | `src/whatsapp.ts`, `android/…/WhatsAppSharePlugin.java` | WhatsApp sharing (a native Android plugin that targets WhatsApp directly) |
 | `src/pdf.ts` | Searchable PDF builder (jsPDF + invisible text layer) |
 | `src/db.ts` | IndexedDB storage for documents, pages and settings |

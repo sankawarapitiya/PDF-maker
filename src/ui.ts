@@ -2,7 +2,8 @@ import {
   createElement, AlignLeft, ArrowLeft, ArrowRight, Camera, Check, ChevronLeft, ChevronRight, Clock3, Copy,
   Crop, Download, EllipsisVertical, FileStack, FileText, Focus, FolderOpen, Images, Languages, PenLine,
   Plus, RotateCcw, RotateCw, ScanLine, ScanSearch, ScanText, Search, Settings, Share2, ShieldCheck,
-  Sparkles, Trash2, X, Zap, type IconNode,
+  Sparkles, Trash2, X, Zap, CloudUpload, Cloud, CloudOff, LockKeyhole, KeyRound, Server, QrCode, Eye,
+  EyeOff, RefreshCw, LogOut, CircleCheck, CircleAlert, Delete, Smartphone, Hash, ShieldAlert, type IconNode,
 } from 'lucide';
 
 type Child = Node | string | number | null | undefined | false | Child[];
@@ -44,6 +45,9 @@ const ICONS: Record<string, IconNode> = {
   left: ArrowLeft, right: ArrowRight, search: Search, edit: PenLine, boxes: ScanSearch,
   download: Download, more: EllipsisVertical, languages: Languages, shield: ShieldCheck,
   sparkles: Sparkles, pages: FileStack, folder: FolderOpen, clock: Clock3, chevron: ChevronRight,
+  upload: CloudUpload, cloud: Cloud, cloudoff: CloudOff, lock: LockKeyhole, key: KeyRound, server: Server,
+  qr: QrCode, eye: Eye, eyeoff: EyeOff, refresh: RefreshCw, logout: LogOut, ok: CircleCheck,
+  alert: CircleAlert, delete: Delete, phone: Smartphone, hash: Hash, shieldalert: ShieldAlert,
 };
 
 /** WhatsApp brand glyph (filled); Lucide has no brand icons. */
