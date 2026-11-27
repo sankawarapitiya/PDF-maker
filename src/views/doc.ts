@@ -1,4 +1,4 @@
-import { deleteDoc, getDoc, getPages, getSettings, refreshDocCache, saveDoc } from '../db';
+import { deleteDoc, getDoc, getPages, getSettings, moveDocs, refreshDocCache, saveDoc } from '../db';
 import { buildPdf } from '../pdf';
 import { events, ocrProgress, runOcr } from '../pipeline';
 import { back, navigate } from '../router';
@@ -9,6 +9,8 @@ import type { Page } from '../types';
 import { shareToWhatsApp } from '../whatsapp';
 import { describe, resumeQueue, uploadEvents, type UploadEvent } from '../uploads';
 import { openUploadDialog } from './upload';
+import { printDoc } from './print';
+import { pickFolder } from './folders';
 
 export async function docView([id]: string[]) {
   const doc = await getDoc(id);
@@ -183,7 +185,7 @@ export async function docView([id]: string[]) {
     h(
       'header',
       { class: 'topbar' },
-      iconButton('back', 'Back', () => back('/')),
+      iconButton('back', 'Back', () => back(doc!.folderId ? `/folder/${doc!.folderId}` : '/')),
       title,
       iconButton('edit', 'Rename', async () => {
         const name = await promptDialog('Rename document', doc!.name);
@@ -195,7 +197,7 @@ export async function docView([id]: string[]) {
       iconButton('trash', 'Delete document', async () => {
         if (!(await confirmDialog(`Delete “${doc!.name}” and all its pages?`))) return;
         await deleteDoc(doc!.id);
-        navigate('/', true);
+        navigate(doc!.folderId ? `/folder/${doc!.folderId}` : '/', true);
       }),
     ),
     h('main', { class: 'content' }, summary, grid),
@@ -212,12 +214,25 @@ export async function docView([id]: string[]) {
       actionButton('text', 'Text', ocrAll),
       actionButton('upload', 'Upload', () => openUploadDialog(doc!), 'primary'),
       actionButton('whatsapp', 'WhatsApp', whatsApp, 'wa'),
-      actionButton('share', 'Export', async () => {
-        const c = await actionSheet('Export', [
+      actionButton('more', 'More', async () => {
+        const c = await actionSheet('More', [
+          { label: 'Print', icon: 'printer', hint: 'Toshiba, Canon or any printer' },
           { label: 'Share PDF', icon: 'share', hint: 'Send with any app' },
           { label: 'Save PDF', icon: 'download', hint: 'Save to this device' },
+          { label: 'Edit as Word document', icon: 'fileplus', hint: 'Editable .docx from the recognised text' },
+          { label: 'Move to folder', icon: 'move' },
         ]);
-        if (c !== null) exportPdf(c === 0);
+        if (c === 0) printDoc(doc!);
+        else if (c === 1 || c === 2) exportPdf(c === 1);
+        else if (c === 3) {
+          if (!pages.some((p) => p.ocr)) return toast('Recognise the text first (tap Text)');
+          const fresh = await getDoc(doc!.id);
+          const w = await (await import('./word')).wordFromScan(fresh ?? doc!);
+          navigate(`/word/${w.id}`);
+        } else if (c === 4) {
+          const dest = await pickFolder(`Move “${doc!.name}” to`, { current: doc!.folderId ?? null });
+          if (dest !== undefined) { await moveDocs([doc!.id], dest); doc!.folderId = dest; toast('Moved'); }
+        }
       }),
     ),
   );

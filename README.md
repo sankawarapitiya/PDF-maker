@@ -47,6 +47,28 @@ The typeface is Inter (bundled, so it works offline) and the icons are [Lucide](
   - Credentials encrypted on the device (AES-256-GCM, non-exportable key). Passwords are never stored.
   - HTTPS-only connections, with HMAC-signed requests protected against replay and SHA-256 integrity checks.
   - Screenshot blocking on Android, no cloud backup of app data, and "Erase all data".
+- **Folders 📂:**
+  - Create nested folders with colours, then rename, move or delete them. When deleting, you choose whether to keep the contents or delete everything.
+  - Multi-select documents to move or delete them.
+  - Breadcrumb navigation, and search within a folder or across all of them, with folder paths shown in results.
+  - New scans go into the folder you're viewing.
+- **Word document editor:**
+  - Create and edit `.docx` documents: headings, fonts and sizes, bold/italic/underline/strike, colour and highlight, alignment, bulleted and numbered lists, quotes, tables, pictures and links.
+  - Open existing Word files, save or share as genuine `.docx`, export to PDF, and print.
+  - Turn any scan's recognised text into an editable Word document.
+- **Printing (Toshiba e-STUDIO, Canon imageRUNNER / i-SENSYS and any IPP printer):**
+  - **System print dialog** works everywhere. On Android it uses the Mopria, Canon PRINT and Toshiba e-BRIDGE print plug-ins.
+  - **Direct network printing** in the Android app:
+    - IPP, IPPS or raw 9100 with PJL
+    - brand presets (Toshiba `/Print`, Canon `/ipp/print`)
+    - automatic printer discovery (mDNS) and a connection test that reads the model, PDF support, colour and duplex
+    - copies, colour or B&W, 1- or 2-sided and paper size (A4 / Letter / A3 / Legal)
+    - job owner and department/account ID
+    - live job status
+  - **Security:**
+    - Plain IPP and raw printing are refused unless the printer is on the local network.
+    - IPPS pins the printer's certificate.
+    - Only files inside the app's own storage can be printed.
 - **Library search** across document names *and* recognised text.
 - **Private by design**: everything is stored on the device in IndexedDB, and nothing is uploaded.
 - **Offline-first**: a service worker precaches the app, the OCR engine, and the English model.
@@ -91,6 +113,7 @@ Camera permission is already declared in `AndroidManifest.xml` and `Info.plist`.
 ```bash
 npm test                                   # unit tests + reference-server security tests
 npm run test:e2e:upload                    # server upload, sign-in, PIN lock, offline queue (after npm run build)
+npm run test:e2e:docs                      # folders, Word editor (.docx round trip, PDF), printer setup & print sheet
 npm run build && npm run test:e2e          # full browser flow with a fake camera (needs Playwright + poppler-utils)
 ```
 
@@ -114,6 +137,11 @@ Screenshots are written to `test-results/`.
 | `src/langs.ts`, `src/views/languages.ts` | Language pack downloader and storage, plus its Settings UI |
 | `src/server.ts`, `src/uploads.ts`, `src/views/upload.ts` | Signed API client, upload queue with retry, upload sheet |
 | `src/vault.ts`, `src/lock.ts`, `src/views/settings-security.ts` | Encrypted secret store, PIN app lock, security settings |
+| `src/views/library.ts`, `src/views/folders.ts` | Library with folders, breadcrumbs, multi-select, folder picker |
+| `src/views/word.ts`, `src/docx.ts` | Word editor (TipTap) and .docx import (mammoth) / export (docx) |
+| `src/printing.ts`, `src/views/print.ts` | Printer settings, print sheet, system / direct printing |
+| `android/…/IppClient.java`, `PrinterPlugin.java` | Native IPP/IPPS/raw-9100 client, discovery, Android print framework |
+| `tests/fake-printer.mjs`, `tests/ipp-client.test.mjs` | Fake Toshiba IPP printer + Java client tests |
 | `server/` | Reference upload server (zero dependencies) + tests |
 | `src/whatsapp.ts`, `android/…/WhatsAppSharePlugin.java` | WhatsApp sharing (a native Android plugin that targets WhatsApp directly) |
 | `src/pdf.ts` | Searchable PDF builder (jsPDF + invisible text layer) |

@@ -10,6 +10,7 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         registerPlugin(WhatsAppSharePlugin.class);
         registerPlugin(SecurityPlugin.class);
+        registerPlugin(PrinterPlugin.class);
         super.onCreate(savedInstanceState);
         // Apply "block screenshots" before any content is drawn.
         if (SecurityPlugin.isSecure(this)) {

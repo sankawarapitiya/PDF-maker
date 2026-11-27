@@ -51,9 +51,24 @@ export interface UploadState {
   receipt?: { uploadId: string; sha256: string; bytes: number; receivedAt: number };
 }
 
+export interface Folder {
+  id: string;
+  name: string;
+  parentId: string | null;
+  color: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export type DocKind = 'scan' | 'word';
+
 export interface Doc {
   id: string;
   name: string;
+  /** 'scan' (camera pages) or 'word' (rich-text document). Missing = scan. */
+  kind?: DocKind;
+  /** Containing folder; null/undefined = library root */
+  folderId?: string | null;
   createdAt: number;
   updatedAt: number;
   pageIds: string[];
@@ -87,8 +102,48 @@ export interface SecuritySettings {
   blockScreenshots: boolean;
 }
 
+export type PrinterBrand = 'toshiba' | 'canon' | 'other';
+export type PrintProtocol = 'ipp' | 'ipps' | 'raw';
+export type PrintSides = 'one-sided' | 'two-sided-long-edge' | 'two-sided-short-edge';
+export type PrintMedia = 'iso_a4_210x297mm' | 'na_letter_8.5x11in' | 'iso_a3_297x420mm' | 'na_legal_8.5x14in';
+
+export interface PrintOptions {
+  copies: number;
+  color: 'color' | 'monochrome';
+  sides: PrintSides;
+  media: PrintMedia;
+}
+
+export interface PrinterConfig {
+  id: string;
+  name: string;
+  brand: PrinterBrand;
+  host: string;
+  protocol: PrintProtocol;
+  port: number;
+  path: string;
+  model?: string;
+  /** document-format-supported reported by the printer */
+  formats?: string[];
+  colorSupported?: boolean;
+  duplexSupported?: boolean;
+  /** SHA-256 of the printer's TLS certificate, pinned on first trusted connection (IPPS) */
+  certSha256?: string;
+  /** Sent as requesting-user-name (job owner shown on the printer panel) */
+  jobOwner?: string;
+  /** Department / account ID for printers with job accounting (IPP job-account-id) */
+  accountId?: string;
+  defaults: PrintOptions;
+}
+
+export interface PrintSettings {
+  printers: PrinterConfig[];
+  defaultPrinterId: string | null;
+}
+
 export interface Settings {
   server: ServerSettings;
+  printing: PrintSettings;
   security: SecuritySettings;
   ocrLangs: string[];
   autoOcr: boolean;

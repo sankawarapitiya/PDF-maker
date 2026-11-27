@@ -5,6 +5,7 @@ import { h, icon, iconButton, pickFiles, toast } from '../ui';
 import { cropEditor } from './crop';
 import { navigate } from '../router';
 import type { Doc } from '../types';
+import { getCurrentFolder } from '../state';
 
 function newDocName(): string {
   const d = new Date();
@@ -19,7 +20,7 @@ async function targetDoc(docId?: string): Promise<Doc> {
     if (d) return d;
   }
   const now = Date.now();
-  const doc: Doc = { id: uid(), name: newDocName(), createdAt: now, updatedAt: now, pageIds: [] };
+  const doc: Doc = { id: uid(), name: newDocName(), kind: 'scan', folderId: getCurrentFolder(), createdAt: now, updatedAt: now, pageIds: [] };
   await saveDoc(doc);
   return doc;
 }

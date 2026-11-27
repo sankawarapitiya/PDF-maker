@@ -5,6 +5,7 @@ import { h, icon, iconButton } from '../ui';
 import type { Settings } from '../types';
 import { installPrompt } from '../pwa';
 import { serverSection } from './settings-server';
+import { printersSection } from './print';
 import { securitySection } from './settings-security';
 
 export async function settingsView([section]: string[] = []) {
@@ -58,12 +59,13 @@ export async function settingsView([section]: string[] = []) {
         h('label', { class: 'row' }, h('strong', null, 'Image quality'),
           select('jpegQuality', [['0.7', 'Smaller file'], ['0.85', 'Balanced'], ['0.95', 'Best']], Number)),
       ),
+      await printersSection(),
       await serverSection(),
       await securitySection(),
       h('section', null, h('h3', null, icon('shield', 16), 'Privacy & app'),
         h('div', { class: 'about' },
           h('img', { src: new URL('icons/icon.svg', new URL(import.meta.env.BASE_URL, location.href)).href, alt: '' }),
-          h('div', null, h('strong', null, 'DocScan OCR'), h('div', { class: 'muted' }, 'Version 1.2 · ', storage))),
+          h('div', null, h('strong', null, 'DocScan OCR'), h('div', { class: 'muted' }, 'Version 1.3 · ', storage))),
         h('p', { class: 'muted', style: 'margin:0' }, 'Scans and recognised text stay on this device unless you upload them to your own server.'),
         installBtn),
     ),

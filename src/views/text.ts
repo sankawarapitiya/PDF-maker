@@ -31,6 +31,10 @@ export async function textView([id]: string[]) {
         await navigator.clipboard.writeText(area.value);
         toast('Copied to clipboard');
       }),
+      actionButton('fileplus', 'Edit in Word', async () => {
+        const w = await (await import('./word')).wordFromScan({ ...doc, text: area.value });
+        navigate(`/word/${w.id}`);
+      }),
       actionButton('share', 'Share .txt', () =>
         shareOrDownload(new Blob([area.value], { type: 'text/plain' }), `${safeName(doc.name)}.txt`, doc.name), 'primary'),
     ),

@@ -19,6 +19,8 @@ import { setScreenshotBlocking } from './native';
 import { initUploads, resumeQueue } from './uploads';
 
 route(/^\/$/, libraryView);
+route(/^\/folder\/([^/]+)$/, libraryView);
+route(/^\/word\/([^/]+)$/, async (p) => (await import('./views/word')).wordView(p));
 route(/^\/scan(?:\/([^/]+))?$/, ([docId]) => scanView(docId) as View);
 route(/^\/doc\/([^/]+)$/, docView);
 route(/^\/page\/([^/]+)\/([^/]+)$/, pageView);

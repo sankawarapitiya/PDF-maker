@@ -3,7 +3,11 @@ import {
   Crop, Download, EllipsisVertical, FileStack, FileText, Focus, FolderOpen, Images, Languages, PenLine,
   Plus, RotateCcw, RotateCw, ScanLine, ScanSearch, ScanText, Search, Settings, Share2, ShieldCheck,
   Sparkles, Trash2, X, Zap, CloudUpload, Cloud, CloudOff, LockKeyhole, KeyRound, Server, QrCode, Eye,
-  EyeOff, RefreshCw, LogOut, CircleCheck, CircleAlert, Delete, Smartphone, Hash, ShieldAlert, type IconNode,
+  EyeOff, RefreshCw, LogOut, CircleCheck, CircleAlert, Delete, Smartphone, Hash, ShieldAlert, Folder, FolderPlus,
+  FolderInput, Printer, SquareCheck, Square, Bold, Italic, Underline, Strikethrough, Heading1, Heading2, Heading3,
+  List, ListOrdered, TextAlignStart, TextAlignCenter, TextAlignEnd, TextAlignJustify, Undo2, Redo2, Table, ImagePlus,
+  Highlighter, Baseline, TextQuote, Minus, Save, FileDown, FilePlus, Pilcrow, Link, Wifi, Radar, Rows3, Columns3,
+  Type, CornerLeftUp, type IconNode,
 } from 'lucide';
 
 type Child = Node | string | number | null | undefined | false | Child[];
@@ -48,6 +52,13 @@ const ICONS: Record<string, IconNode> = {
   upload: CloudUpload, cloud: Cloud, cloudoff: CloudOff, lock: LockKeyhole, key: KeyRound, server: Server,
   qr: QrCode, eye: Eye, eyeoff: EyeOff, refresh: RefreshCw, logout: LogOut, ok: CircleCheck,
   alert: CircleAlert, delete: Delete, phone: Smartphone, hash: Hash, shieldalert: ShieldAlert,
+  foldericon: Folder, folderplus: FolderPlus, move: FolderInput, printer: Printer, checked: SquareCheck,
+  unchecked: Square, bold: Bold, italic: Italic, underline: Underline, strike: Strikethrough, h1: Heading1,
+  h2: Heading2, h3: Heading3, ul: List, ol: ListOrdered, alignleft: TextAlignStart, aligncenter: TextAlignCenter,
+  alignright: TextAlignEnd, alignjustify: TextAlignJustify, undo: Undo2, redo: Redo2, table: Table,
+  imageplus: ImagePlus, highlight: Highlighter, color: Baseline, quote: TextQuote, hr: Minus, save: Save,
+  filedown: FileDown, fileplus: FilePlus, paragraph: Pilcrow, link: Link, wifi: Wifi, radar: Radar,
+  rows: Rows3, cols: Columns3, type: Type, up: CornerLeftUp,
 };
 
 /** WhatsApp brand glyph (filled); Lucide has no brand icons. */
