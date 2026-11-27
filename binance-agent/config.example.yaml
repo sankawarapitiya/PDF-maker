@@ -1,0 +1,76 @@
+# ============================================================
+#  Agentic Binance Trader — configuration
+#  Copy to config.yaml and edit. Start in paper mode, then
+#  testnet, and only go live after weeks of paper results.
+# ============================================================
+
+mode: paper              # paper | testnet | live
+
+exchange:
+  quote_asset: USDT
+  symbols: [BTC/USDT, ETH/USDT, SOL/USDT, BNB/USDT]
+  entry_timeframe: 15m   # timeframe used to time entries
+  trend_timeframe: 4h    # higher timeframe used for trend/regime filter
+  candles: 300           # candles fetched per timeframe
+  fee_rate: 0.001        # 0.1% taker (0.075% with BNB discount)
+  slippage: 0.0005       # paper-trading slippage assumption
+
+loop:
+  scan_interval_sec: 60      # how often to look for new entries
+  monitor_interval_sec: 10   # how often to manage open positions
+  llm_review_every_sec: 300  # LLM re-assessment of each open trade
+
+risk:
+  starting_equity: 1000          # paper mode only
+  risk_per_trade: 0.01           # risk 1% of equity between entry and stop
+  max_position_pct: 0.25         # never put >25% of equity in one position
+  max_open_positions: 3
+  max_daily_loss: 0.03           # stop opening trades after -3% day
+  max_drawdown: 0.15             # kill switch: halt everything at -15% from peak
+  max_consecutive_losses: 4      # pause after a losing streak
+  cooldown_after_loss_min: 60    # no re-entry on same symbol after a loss
+  min_reward_risk: 2.0           # required R:R to nearest resistance
+  max_atr_pct: 0.06              # skip assets that are too volatile right now
+
+entry:
+  min_tech_score: 65             # 0-100 technical confluence score to call the LLM
+  min_llm_confidence: 0.65       # LLM must agree with at least this confidence
+  require_llm: true              # if LLM offline -> no new entries (exits still work)
+  btc_filter: true               # no alt longs while BTC higher TF is bearish
+
+management:
+  atr_stop_mult: 1.8             # initial stop = entry - k*ATR (or below swing low)
+  breakeven_at_r: 1.0            # move stop to break-even (+fees) at +1R
+  lock_levels:                   # profit lock ladder: at +R reached -> lock R
+    - {at: 1.5, lock: 0.5}
+    - {at: 2.0, lock: 1.0}
+    - {at: 3.0, lock: 1.8}
+    - {at: 4.0, lock: 2.8}
+  trail_start_r: 2.0             # start ATR chandelier trail after +2R
+  trail_atr_mult: 2.5            # loose trail while trend is healthy
+  trail_atr_mult_tight: 1.3      # tight trail when momentum fades / far in profit
+  tight_trail_after_r: 4.0
+  partial_take_profit:           # bank part of the trade, let the rest run
+    enabled: true
+    at_r: 2.0
+    fraction: 0.33
+  pyramiding:                    # "uplift": add to winners without adding risk
+    enabled: false
+    max_adds: 1
+    add_at_r: 1.5
+    add_fraction: 0.5            # of the original size
+  risk_exit_score: 70            # deterioration score (0-100) that forces a close
+  risk_tighten_score: 45         # score that tightens the stop instead
+  time_stop_bars: 48             # exit if trade hasn't reached +0.5R after N bars
+  use_exchange_stop: true        # keep a real STOP_LOSS_LIMIT on Binance (crash safety)
+
+llm:
+  provider: ollama               # ollama | openai_compatible (LM Studio, llama.cpp, vLLM)
+  base_url: http://localhost:11434
+  model: qwen2.5:14b-instruct    # good JSON-followers: qwen2.5, llama3.1:8b, mistral-nemo
+  temperature: 0.1
+  timeout_sec: 90
+
+storage:
+  db_path: state/journal.db
+  log_dir: logs

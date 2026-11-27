@@ -1,0 +1,8 @@
+.env
+*.db
+state/
+logs/
+__pycache__/
+.pytest_cache/
+data/*.csv
+config.yaml
